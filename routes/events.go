@@ -45,3 +45,40 @@ func getEventByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, event)
 }
+
+func updateEvent(c *gin.Context) {
+	eventID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	// Check if the event exists
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Bind the request body to the event struct
+	var updateEvent models.Event
+	err = c.ShouldBindJSON(&updateEvent)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if the event exists with the given ID
+	_, err = models.GetEventByID(eventID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Update the event
+	updateEvent.ID = eventID
+	err = updateEvent.UpdateEvent()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Event updated successfully",
+	})
+}
