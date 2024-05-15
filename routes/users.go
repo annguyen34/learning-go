@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"rest-api/models"
 	"rest-api/utils"
@@ -18,12 +19,21 @@ func signup(c *gin.Context) {
 	}
 
 	err = user.Save()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	fmt.Println(user)
+
+	token, err := utils.GenerateToken(user.Email, user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"data": user,
+		"message": "User created successfully",
+		"token":   token,
 	})
 }
 
